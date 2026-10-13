@@ -175,7 +175,7 @@ evidence/
     └── analysis_output.txt
 ```
 
-The structure above is a checklist of expected files. Keep only filenames that actually exist, and add optional screenshots such as duplicate-folder validation or the null-image fallback if captured.
+The files listed above were present in the project evidence folder when this README was updated. The Activity 08 screenshots are retained separately under `evidence/activity08/`.
 
 `T1_before.png` should contain the historical Activity 08 screenshot showing river, Acron, and oak. `T4_after.png` should be captured after the force-stop and relaunch. `analysis_output.txt` should contain the actual database diagnostics and Flutter analyzer output.
 
@@ -208,18 +208,18 @@ Update each checkbox only after verifying that the item is complete.
 - [x] `flutter analyze` completed successfully — no issues found.
 - [x] Required Activity 09 screenshots saved with the correct filenames.
 - [x] `analysis_output.txt` contains database diagnostics and analyzer output.
-- [x] Graduate Critical Thinking document reviewed and student ID completed.
+- [x] Graduate Critical Thinking document drafted/reviewed and student ID entered; verify the final filename before upload.
 - [x] `flutter build apk --release` completed successfully.
-- [x] Release APK installed and smoke-tested on a disposable Android target.
-- [x] `github_link.txt` contains the correct repository URL.
-- [x] All three required files uploaded to iCollege and verified.
+- [x] Release APK installed on the Pixel 10 emulator; persistence and card/folder deletion were smoke-tested. The title-edit check was not conclusively verified.
+- [ ] `github_link.txt` created and checked for the correct repository URL.
+- [ ] All three required files uploaded to iCollege and verified.
 
 ## 12. Final Deliverables
 
 The required iCollege uploads are separate files:
 
 1. `github_link.txt` — contains the URL of the student's GitHub repository.
-2. `Activity09_Lastname_Firstname.apk` — release APK built and tested on a disposable Android target.
-3. `Lastname_Firstname_CriticalThinking.docx` — completed graduate reflection document.
+2. `Activity09_Nallapaneni_MouniSri.apk` — release APK built successfully and smoke-tested on the Pixel 10 emulator. Rename it only if your instructor requires a different exact filename.
+3. `Nallapaneni_MouniSri_CriticalThinking.docx` — Graduate reflection document; verify that the final file exists under this exact filename before uploading.
 
-Before submission, verify the actual filenames, review the reflection document, and confirm that all required evidence files exist. Do not mark a test or deliverable complete unless it has been performed and verified.
+Before submission, create `github_link.txt` containing `https://github.com/MouniSri039/Activity09-Local-Storage`, verify the Critical Thinking document filename, and upload all three files separately to iCollege. Do not mark a test or deliverable complete unless it has been performed and verified.
