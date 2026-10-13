@@ -1,87 +1,225 @@
-# Fall Festival Roster — Flutter + SQLite
+# Local Storage Lab — Activity 08 and Activity 09
 
-## Overview
+**Course:** Mobile Application Development  
+**Assignment:** In-Class Activity 09 — Local Storage: Connect the Pieces  
+**Student:** Nallapaneni Mouni Sri  
+**Pathway:** Graduate  
+**Platform:** Flutter + SQLite
 
-This project is a Flutter mobile application that stores Fall Festival guest records locally using SQLite. The app supports adding, editing, cancelling edits, deleting, refreshing, and validating guest records.
+## 1. Project Overview
 
-## Technologies
+This project extends the Flutter and SQLite application from Activity 08. Activity 08 stored guest records in a single table. Activity 09 adds a card catalogue with folders and cards, using a relational database structure.
 
-- Flutter
-- Dart
-- SQLite
-- sqflite
-- path_provider
-- path
+The application supports:
 
-## Database Schema
+- Creating folders and displaying the number of cards in each folder.
+- Opening a folder to view its cards.
+- Adding and editing cards.
+- Deleting cards and folders with confirmation.
+- Rejecting blank folder names, blank card titles, and duplicate folder names.
+- Preserving data across an app force-stop and relaunch.
+- Enforcing folder–card relationships through SQLite foreign keys.
+- Displaying a suit-symbol fallback when a card has no image reference.
 
-The application uses one SQLite table named `my_table`.
+## 2. Technologies Used
+
+- Flutter and Dart
+- SQLite through `sqflite`
+- `path` for database path handling
+- `path_provider` for the application documents directory
+- Android emulator for application testing
+
+## 3. Activity 08 — Original Guest Table
+
+The original database filename is `MyDatabase.db`. The original table is `my_table`, with the following columns:
+
+| Column | Type | Purpose |
+|---|---|---|
+| `_id` | INTEGER PRIMARY KEY | Identifies each guest record |
+| `name` | TEXT NOT NULL | Guest name |
+| `age` | INTEGER NOT NULL | Guest age |
+
+### Historical Activity 08 Evidence
+
+The saved Activity 08 screenshot shows the following guest records in the original application before they were deleted:
+
+| ID | Name | Age |
+|---:|---|---:|
+| 2 | river | 35 |
+| 3 | Acron | 0 |
+| 4 | oak | 130 |
+
+The screenshot is retained as historical evidence of the original guest roster and its displayed IDs and values. These records were present in the Activity 08 application before the Activity 09 migration work.
+
+The current database diagnostic shows that `my_table` is empty. Therefore, the screenshot establishes the earlier records, while the current diagnostic describes the present database state. The screenshot alone does not establish that the original rows survived the migration.
+
+## 4. Activity 09 — Database Schema and Migration
+
+The database version was increased from **1 to 2**, retaining the database filename `MyDatabase.db`.
+
+The implementation uses `onUpgrade` to create the new catalogue tables for an existing version-1 database. The original `my_table` definition is also included in `onCreate` so a fresh installation creates the original table and the catalogue tables.
+
+### `folders` table
 
 | Column | Type | Constraint |
 |---|---|---|
-| `_id` | INTEGER | PRIMARY KEY |
-| `name` | TEXT | NOT NULL |
-| `age` | INTEGER | NOT NULL |
+| `id` | INTEGER | Primary key, autoincrement |
+| `name` | TEXT | NOT NULL, UNIQUE |
+| `created_at` | TEXT | NOT NULL |
 
-The database helper initializes `MyDatabase.db` and provides insert, query, update, and delete operations.
+### `cards` table
 
-## Validation
+| Column | Type | Constraint |
+|---|---|---|
+| `id` | INTEGER | Primary key, autoincrement |
+| `title` | TEXT | NOT NULL |
+| `suit` | TEXT | NOT NULL |
+| `notes` | TEXT | NOT NULL, default empty string |
+| `image_ref` | TEXT | Nullable |
+| `folder_id` | INTEGER | NOT NULL, foreign key to `folders(id)` |
 
-- Guest name cannot be blank or whitespace only.
-- Age must be a whole number.
-- Age must be between 0 and 130 inclusive.
-- Invalid input is rejected before writing to SQLite.
+The relationship uses `ON DELETE CASCADE`. When a folder is deleted, its associated cards should also be deleted. Foreign-key enforcement is enabled through `PRAGMA foreign_keys = ON` in `onConfigure`.
 
-## Manual Test Evidence
+The index `idx_cards_folder_id` is created on `cards(folder_id)` to support queries that retrieve cards by folder.
 
-| Test | Action/Input | Expected | Observed | Result |
-|---|---|---|---|---|
-| T1 | Refresh empty roster | Count 0 and empty state | Count 0 and empty state displayed | PASS |
-| T2 | Add River 21 and River 34 | Count 2 with distinct IDs | ID 1 = River 21, ID 2 = River 34 | PASS |
-| T3 | Edit ID 2 to 99, cancel, then edit to 35 and save | Cancel keeps 34; save changes to 35 | ID 2 remained 34 after cancel and became 35 after save | PASS |
-| T4 | Stop app, force stop, and relaunch | Same records survive | ID 1 and ID 2 data survived restart | PASS |
-| T5 | Cancel deletion of ID 1, then confirm deletion | Cancel keeps record; confirmed delete removes it | ID 1 removed and count became 1 | PASS |
-| T6 | Test invalid values and age boundaries | Invalid values rejected; 0 and 130 accepted | Invalid values rejected; boundary ages accepted; final count 3 | PASS |
+## 5. Models and Database Operations
 
-## T4 Persistence Evidence
+The application uses typed models:
 
-- `evidence/T4_before.png` — records before stopping the application.
-- `evidence/T4_after.png` — records after force stopping and relaunching the application.
+- `Folder` represents a folder and includes its ID, name, creation timestamp, and displayed card count.
+- `CardRecord` represents a card and includes its ID, title, suit, notes, optional image reference, and folder ID.
 
-The records survived because they were stored in SQLite rather than only in temporary widget state.
+Database operations are implemented in `DatabaseHelper`, keeping SQL operations outside the UI widgets.
 
-## T6 Validation Evidence
+The helper supports:
 
-- `evidence/T6_invalid.png` — validation feedback for an invalid age input.
+- Creating and retrieving folders.
+- Retrieving folder card counts.
+- Creating, retrieving, updating, and deleting cards.
+- Deleting folders.
+- Validating folder names and card titles.
+- Restricting suits to Hearts, Diamonds, Clubs, and Spades.
 
-## Analyzer Evidence
+Card records are identified by their database IDs rather than their titles or positions in the displayed list.
 
-- `evidence/analysis_output.txt` contains the final `flutter analyze` output.
-- Final result: `No issues found!`
+## 6. Testing and Observed Results
 
-# Graduate Reflection
+The following results reflect the tests performed during development. Screenshots should be saved in `evidence/activity09/` using the corresponding filenames.
 
-## 1. The disappearing-data mystery
+| Test | Procedure | Observed result | Status |
+|---|---|---|---|
+| T1 — Migration and original data | Review the historical Activity 08 screenshot and inspect the current database diagnostics. | The screenshot shows the original three guest records. The current `my_table` diagnostic is empty, so preservation of those rows through migration cannot be confirmed from the current database. | Partial — limitation documented |
+| T2 — Folder and card creation | Create Atlas and Harbor; add cards to the folders. | Harbor contains Signal, card ID 3, with suit Diamonds. Atlas was used for Compass card tests. Additional test records were also created during development. | Tested |
+| T3 — Edit and cancel | Edit card ID 4 and save; edit card ID 2 and cancel. | ID 4 displayed `Compass revised` with notes `Updated for Activity 09 test`. The cancelled edit to ID 2 did not save its attempted changes. | Pass |
+| T4 — Persistence | Force-stop and relaunch the application without clearing its data. | The user observed that saved card values persisted after relaunch. Attach a screenshot captured after relaunch as `T4_after.png`. | Tested |
+| T5 — Delete and cascade | Cancel and confirm card deletion; cancel and confirm folder deletion. | Cancellation left data unchanged. Confirmed deletion of Atlas removed its remaining cards. Harbor and its Signal card remained, with Harbor showing a count of 1. | Pass |
+| T6 — Validation and image fallback | Try a blank folder name, a blank card title, and a duplicate folder name. Inspect Signal's image reference and fallback. | Invalid inputs were rejected with visible feedback. Duplicate Harbor was rejected. Signal's `image_ref` was `NULL`, and its suit-symbol fallback was visible. | Tested |
 
-Before T4, I predicted that the saved River records would survive because they were written to SQLite instead of being stored only in widget memory. My records were ID 1 (River, 21) and ID 2 (River, 35), with a count of 2. I stopped the application, force-stopped it, and relaunched the same installation, and the same IDs, names, ages, and count were still present. If the roster had returned empty or the records had received different IDs, that would have disproved my claim that SQLite restored the data.
+### T1 limitation
 
-## 2. Two Rivers, one wrong edit
+The historical screenshot is evidence of the original Activity 08 records, but it is not a post-migration database export. Because the current `my_table` diagnostic is empty, T1 is marked **Partial** rather than claiming that data preservation was verified. Any recovery or retest of the original database should follow the instructor's guidance.
 
-The two River records had the same name but different IDs, so the name alone was not a reliable identifier. I edited ID 2 from age 34 to 35, which showed that the update targeted the selected database ID. If the list were sorted differently, selecting a record by list position could target the wrong guest because the same position could represent a different database row after sorting.
+## 7. Database Diagnostics
 
-## 3. My own usability walkthrough
+The diagnostic output from the current application reported:
 
-The Add, Edit, Cancel, and Delete operations were easy to follow because the same form was reused for adding and editing. Cancelling the edit did not change the stored value, while saving the edit changed ID 2 from age 34 to 35. The T6 validation tests showed that invalid input did not increase the record count, while the valid boundary ages 0 and 130 were accepted.
+```text
+Database version: [{user_version: 2}]
+Foreign keys enabled: [{foreign_keys: 1}]
+Tables: [{name: android_metadata}, {name: cards}, {name: folders}, {name: my_table}, {name: sqlite_sequence}]
+Cards foreign keys: [{id: 0, seq: 0, table: folders, from: folder_id, to: id, on_update: NO ACTION, on_delete: CASCADE, match: NONE}]
+Card indexes: [{seq: 0, name: idx_cards_folder_id, unique: 0, origin: c, partial: 0}]
+Original Activity 08 rows: []
+All current cards: [{id: 3, title: signal, suit: Diamonds, notes: , image_ref: null, folder_id: 2}]
+Signal image reference: [{id: 3, title: signal, suit: Diamonds, image_ref: null, folder_id: 2}]
+```
 
-## 4. Defend the storage boundary
+These diagnostics confirm the current database version, enabled foreign keys, the catalogue tables, the folder relationship, the index, and Signal's null image reference. They also show that the original guest table is currently empty.
 
-The database schema uses `NOT NULL`, but this alone would still allow an empty string for a name or an invalid integer such as a negative age. I therefore enforce the name and age rules in the UI before writing to SQLite, which provides immediate feedback but means another code path could bypass those UI rules. If the `CREATE TABLE` statement were changed for an existing version-1 database without increasing the database version, the existing database would not automatically receive the new schema. A future migration would need to preserve the existing rows while changing the schema in a controlled versioned migration.
+## 8. Flutter Analysis
 
-## Evidence Files
+Command executed from the project root:
+
+```powershell
+flutter analyze
+```
+
+Observed output:
+
+```text
+Analyzing local_storage_lab...
+No issues found! (ran in 4.4s)
+```
+
+The Flutter analyzer completed successfully at the time this output was recorded.
+
+## 9. Evidence Files
+
+Keep Activity 08 evidence separate from Activity 09 evidence.
+
+Expected Activity 09 evidence structure:
 
 ```text
 evidence/
-├── analysis_output.txt
-├── T4_before.png
-├── T4_after.png
-└── T6_invalid.png
+├── activity08/
+│   └── [existing Activity 08 evidence]
+└── activity09/
+    ├── T1_before.png
+    ├── T2_cards.png
+    ├── T3_edit.png
+    ├── T4_after.png
+    ├── T5_folder_delete.png
+    ├── T5_harbor_signal.png
+    ├── T6_blank_folder.png
+    ├── T6_blank_title.png
+    └── analysis_output.txt
+```
+
+The structure above is a checklist of expected files. Keep only filenames that actually exist, and add optional screenshots such as duplicate-folder validation or the null-image fallback if captured.
+
+`T1_before.png` should contain the historical Activity 08 screenshot showing river, Acron, and oak. `T4_after.png` should be captured after the force-stop and relaunch. `analysis_output.txt` should contain the actual database diagnostics and Flutter analyzer output.
+
+## 10. Graduate Reflection
+
+### Prompt 1 — Failure Reconstruction
+
+The original guest records are visible in the historical Activity 08 screenshot, but the current database diagnostic returns an empty result for `my_table`. This means the current state cannot independently establish whether the original rows survived the migration. The appropriate response is to document the evidence accurately and seek an instructor-approved recovery or retest path rather than recreate records and describe them as preserved.
+
+### Prompt 2 — Delete Policy Trade-Off
+
+The catalogue uses `ON DELETE CASCADE` because cards belong to folders and should not remain attached to a folder that no longer exists. Foreign-key enforcement must be enabled on the database connection for this behavior to work. The folder-deletion confirmation provides an opportunity to warn the user that the associated cards will also be deleted. For data that must be retained, a soft-delete or reassignment strategy would be safer than cascading deletion.
+
+### Prompt 3 — Image Forensics
+
+The `image_ref` column is nullable. Signal has a `NULL` image reference, and the application displays a suit-symbol fallback rather than requiring an image. A reference is not the image itself: a file may be moved or deleted, an asset must be packaged with the application, and a remote URL may fail when offline. A robust implementation should validate the reference and provide a fallback whenever the image cannot be loaded.
+
+### Prompt 4 — Version 3 Migration Design
+
+A future version 3 could add an `is_favorite` integer column with a default value of `0` and a nullable `review_date` text column. The database version would increase to 3, and the migration should run only when `oldVersion < 3`, preserving existing folders, cards, and the original guest table.
+
+The migration should be performed transactionally so a failure does not leave a partially upgraded schema. Existing cards should receive the defined default favorite value, while `review_date` should remain `NULL` until a review date is supplied. Validation should include a version-2 upgrade with existing records, a fresh installation, preservation of IDs and values, the new defaults, nullable review dates, foreign-key behavior, and a simulated migration failure. The test should verify that a failed upgrade rolls back cleanly and can be retried safely.
+
+## 11. Submission Checklist
+
+Update each checkbox only after verifying that the item is complete.
+
+- [x] `README.md` updated for Activity 09.
+- [x] Activity 08 evidence retained separately.
+- [x] `flutter analyze` completed successfully — no issues found.
+- [ ] Required Activity 09 screenshots saved with the correct filenames.
+- [ ] `analysis_output.txt` contains database diagnostics and analyzer output.
+- [ ] Graduate Critical Thinking document reviewed and student ID completed.
+- [ ] `flutter build apk --release` completed successfully.
+- [ ] Release APK installed and smoke-tested on a disposable Android target.
+- [ ] `github_link.txt` contains the correct repository URL.
+- [ ] All three required files uploaded to iCollege and verified.
+
+## 12. Final Deliverables
+
+The required iCollege uploads are separate files:
+
+1. `github_link.txt` — contains the URL of the student's GitHub repository.
+2. `Activity09_Lastname_Firstname.apk` — release APK built and tested on a disposable Android target.
+3. `Lastname_Firstname_CriticalThinking.docx` — completed graduate reflection document.
+
+Before submission, verify the actual filenames, review the reflection document, and confirm that all required evidence files exist. Do not mark a test or deliverable complete unless it has been performed and verified.
