@@ -206,13 +206,13 @@ Update each checkbox only after verifying that the item is complete.
 - [x] `README.md` updated for Activity 09.
 - [x] Activity 08 evidence retained separately.
 - [x] `flutter analyze` completed successfully — no issues found.
-- [ ] Required Activity 09 screenshots saved with the correct filenames.
-- [ ] `analysis_output.txt` contains database diagnostics and analyzer output.
-- [ ] Graduate Critical Thinking document reviewed and student ID completed.
-- [ ] `flutter build apk --release` completed successfully.
-- [ ] Release APK installed and smoke-tested on a disposable Android target.
-- [ ] `github_link.txt` contains the correct repository URL.
-- [ ] All three required files uploaded to iCollege and verified.
+- [x] Required Activity 09 screenshots saved with the correct filenames.
+- [x] `analysis_output.txt` contains database diagnostics and analyzer output.
+- [x] Graduate Critical Thinking document reviewed and student ID completed.
+- [x] `flutter build apk --release` completed successfully.
+- [x] Release APK installed and smoke-tested on a disposable Android target.
+- [x] `github_link.txt` contains the correct repository URL.
+- [x] All three required files uploaded to iCollege and verified.
 
 ## 12. Final Deliverables
 
